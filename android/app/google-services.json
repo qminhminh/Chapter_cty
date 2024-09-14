@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "655483694502",
+    "project_id": "congty-14d9f",
+    "storage_bucket": "congty-14d9f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655483694502:android:3d2c7d5e24505c76e33367",
+        "android_client_info": {
+          "package_name": "com.example.tuhoc_cty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADXdqPpE3gXPpwHKCTbWRVLmxIekOWalk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,31 +1,20 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print, library_private_types_in_public_api, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
+// ignore_for_file: prefer_const_constructors, avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:tuhoc_cty/chapter16/format_dates.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
 import 'package:tuhoc_cty/chapter16/mood_icons.dart';
 
-class EditEntry extends StatefulWidget {
-  final String entryId;
-  final DateTime date;
-  final String note;
-  final String mood;
-
-  EditEntry({
-    required this.entryId,
-    required this.date,
-    required this.note,
-    required this.mood,
-  });
-
+class EditEntryAdd extends StatefulWidget {
   @override
-  _EditEntryState createState() => _EditEntryState();
+  _EditEntryAddState createState() => _EditEntryAddState();
 }
 
-class _EditEntryState extends State<EditEntry> {
+class _EditEntryAddState extends State<EditEntryAdd> {
   late JournalEditBloc _journalEditBloc;
   late FormatDates _formatDates;
   late MoodIcons _moodIcons;
@@ -36,7 +25,7 @@ class _EditEntryState extends State<EditEntry> {
     super.initState();
     _formatDates = FormatDates();
     _moodIcons = MoodIcons();
-    _noteController = TextEditingController(text: widget.note);
+    _noteController = TextEditingController();
   }
 
   @override
@@ -45,10 +34,10 @@ class _EditEntryState extends State<EditEntry> {
     final JournalEditBlocProvider? provider =
         JournalEditBlocProvider.of(context);
     if (provider == null) {
-      throw StateError('JournalEditBlocProvider not found in widget tree.');
+      throw StateError(
+          'JournalEditBlocProvider không tìm thấy trong cây widget.');
     }
     _journalEditBloc = provider.journalEditBloc;
-    _journalEditBloc.initialize();
   }
 
   @override
@@ -84,55 +73,64 @@ class _EditEntryState extends State<EditEntry> {
   Future<void> _addOrUpdateJournal() async {
     try {
       String note = _noteController.text;
+      String date = _journalEditBloc.currentDate;
+      String mood = _journalEditBloc.currentMood;
 
-      // Listen for changes in date and mood
-      _journalEditBloc.dateEdit.listen((event) {
-        setState(() {
-          // Update internal state if needed
-        });
-      });
+      DateTime dateTime = DateTime.parse(date);
+      Timestamp timestamp = Timestamp.fromDate(dateTime);
 
-      _journalEditBloc.moodEdit.listen((event) {
-        setState(() {
-          // Update internal state if needed
-        });
-      });
-
-      // Convert _testdate from String to DateTime and then to Timestamp
-      String testdate = _journalEditBloc.currentDate ?? widget.date.toString();
-      DateTime date = DateTime.parse(testdate);
-      Timestamp timestamp = Timestamp.fromDate(date);
-
-      // Update or add journal entry
+      _showErrorDialog(timestamp.toString(), mood, note);
       String userId = FirebaseAuth.instance.currentUser!.uid;
       CollectionReference userJournals = FirebaseFirestore.instance
           .collection('journals')
           .doc(userId)
           .collection('userJournals');
 
-      // Find the document by ID
-      DocumentReference docRef = userJournals.doc(widget.entryId);
+      // Thêm mới document
+      DocumentReference docRef = await userJournals.add({
+        'date': timestamp,
+        'mood': mood,
+        'note': note,
+      });
 
-      // Check if the document exists
-      DocumentSnapshot docSnapshot = await docRef.get();
-      if (docSnapshot.exists) {
-        // Update the document
-        await docRef.update({
-          'date': timestamp,
-          'mood': _journalEditBloc.currentMood ?? widget.mood,
-          'note': note,
-        });
-        print("Document updated successfully with ID: ${widget.entryId}");
-        Navigator.of(context).pop();
-      } else {
-        print("No journal entry found with the given ID");
-      }
+      // Lấy ID của document vừa thêm và cập nhật lại document với ID
+      String documentId = docRef.id;
+      print("New document added with ID: $documentId");
 
-      // Notify BLoC of the save action
+      await docRef.update({'id': documentId}).then((value) {
+        print("Document updated with new ID: $documentId");
+
+        Navigator.pop(context);
+      }).catchError((error) {
+        print("Failed to update document with ID: $error");
+      });
+
+      // Lưu trạng thái vào BLoC
       _journalEditBloc.saveJournalChanged.add('Save');
+      // Navigator.pop(context); // Đóng màn hình sau khi lưu
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  void _showErrorDialog(String date, String mood, String note) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Test'),
+          content: Text('$date + $mood + $note'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -166,7 +164,7 @@ class _EditEntryState extends State<EditEntry> {
                   stream: _journalEditBloc.dateEdit,
                   builder:
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    String date = snapshot.data ?? widget.date.toString();
+                    String date = snapshot.data ?? DateTime.now().toString();
                     return TextButton(
                       onPressed: () async {
                         FocusScope.of(context).requestFocus(FocusNode());
@@ -196,7 +194,7 @@ class _EditEntryState extends State<EditEntry> {
                   stream: _journalEditBloc.moodEdit,
                   builder:
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    String mood = snapshot.data ?? widget.mood;
+                    String mood = snapshot.data ?? 'Very Satisfied';
                     List<MoodIcon> moodIconsList =
                         _moodIcons.getMoodIconsList();
                     MoodIcon selectedMoodIcon = moodIconsList.firstWhere(
@@ -227,8 +225,11 @@ class _EditEntryState extends State<EditEntry> {
                                 Transform(
                                   transform: Matrix4.identity()
                                     ..rotateZ(mood.rotation),
-                                  alignment: Alignment.center,
-                                  child: Icon(mood.icon, color: mood.color),
+                                  child: Icon(
+                                    mood.icon,
+                                    size: 24.0,
+                                    color: mood.color,
+                                  ),
                                 ),
                                 const SizedBox(width: 16.0),
                                 Text(mood.title),
@@ -240,46 +241,23 @@ class _EditEntryState extends State<EditEntry> {
                     );
                   },
                 ),
-                // Note TextField
-                StreamBuilder<String>(
-                  stream: _journalEditBloc.noteEdit,
-                  builder:
-                      (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    _noteController.value = _noteController.value.copyWith(
-                      text: snapshot.data ?? widget.note,
-                    );
-                    return TextField(
-                      controller: _noteController,
-                      textInputAction: TextInputAction.newline,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        labelText: 'Note',
-                        icon: Icon(Icons.subject),
-                      ),
-                      maxLines: null,
-                      onChanged: (note) =>
-                          _journalEditBloc.noteEditChanged.add(note),
-                    );
-                  },
+                // Note Input
+                TextField(
+                  controller: _noteController,
+                  maxLines: 6,
+                  decoration: InputDecoration(
+                    labelText: 'Notes',
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter your note here',
+                  ),
                 ),
-                // Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    TextButton(
-                      child: const Text('Save'),
-                      onPressed: () async {
-                        await _addOrUpdateJournal();
-                      },
-                    ),
-                  ],
+                // Save Button
+                Container(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: ElevatedButton(
+                    onPressed: _addOrUpdateJournal,
+                    child: const Text('Save'),
+                  ),
                 ),
               ],
             ),

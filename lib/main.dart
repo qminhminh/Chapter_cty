@@ -32,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tuhoc_cty/BlocAndFirebase/Login_cubit.dart';
 import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
+import 'package:tuhoc_cty/chapter16/edit_entry.dart';
 import 'package:tuhoc_cty/chapter16/home_page.dart';
 import 'package:tuhoc_cty/chapter16/login_bloc.dart';
 import 'package:tuhoc_cty/chapter16/login_page.dart';

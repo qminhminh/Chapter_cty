@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors_in_immutables
+
 import 'package:flutter/material.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 

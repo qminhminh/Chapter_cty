@@ -1,11 +1,9 @@
 import 'package:intl/intl.dart';
 
 class FormatDates {
-  // Format date in a readable format, for example: Jan 01, 2024
-  String dateFormatShortMonthDayYear(String date) {
-    DateTime parsedDate = DateTime.parse(date);
-    return DateFormat.yMMMEd().format(parsedDate);
+  // Format for displaying date and time
+  String dateTimeFormat(DateTime dateTime) {
+    return DateFormat('MMM dd, yyyy HH:mm')
+        .format(dateTime); // Example format: Sep 14, 2024 15:30
   }
-
-  // Other formatting methods can be added as needed
 }

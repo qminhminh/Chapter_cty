@@ -123,7 +123,8 @@ class _EditEntryState extends State<EditEntry> {
           'note': note,
         });
         print("Document updated successfully with ID: ${widget.entryId}");
-        Navigator.of(context).pop();
+
+        Navigator.pop(context);
       } else {
         print("No journal entry found with the given ID");
       }

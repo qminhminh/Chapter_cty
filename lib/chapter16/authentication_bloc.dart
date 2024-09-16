@@ -19,6 +19,15 @@ class AuthenticationBloc {
     }
   }
 
+  Future<void> register(String email, String password) async {
+    try {
+      await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
+    } catch (e) {
+      print("Login Failed: $e");
+    }
+  }
+
   // Đăng xuất
   Future<void> signOut() async {
     await _firebaseAuth.signOut();

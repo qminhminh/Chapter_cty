@@ -45,9 +45,9 @@ class LoginPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                _loginBloc.submit();
+                _loginBloc.submitlogin();
               },
-              child: Text('Login'),
+              child: const Text('Login'),
             )
           ],
         ),

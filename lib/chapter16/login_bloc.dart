@@ -35,12 +35,21 @@ class LoginBloc {
       };
 
   // Login method
-  void submit() {
+  void submitlogin() {
     final validEmail = _latestEmail;
     final validPassword = _latestPassword;
 
     if (validEmail.isNotEmpty && validPassword.isNotEmpty) {
       _authBloc.signIn(validEmail, validPassword);
+    }
+  }
+
+  void submitregister() {
+    final validEmail = _latestEmail;
+    final validPassword = _latestPassword;
+
+    if (validEmail.isNotEmpty && validPassword.isNotEmpty) {
+      _authBloc.register(validEmail, validPassword);
     }
   }
 

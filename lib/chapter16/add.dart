@@ -251,13 +251,24 @@ class _EditEntryAddState extends State<EditEntryAdd> {
                     hintText: 'Enter your note here',
                   ),
                 ),
-                // Save Button
-                Container(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    onPressed: _addOrUpdateJournal,
-                    child: const Text('Save'),
-                  ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    TextButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(width: 8.0),
+                    TextButton(
+                      child: const Text('Save'),
+                      onPressed: () async {
+                        await _addOrUpdateJournal();
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_for_elements_to_map_fromiterable, avoid_print, use_build_context_synchronously
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // Refresh function to reload data
   Future<void> _refreshData() async {
-    setState(() {});
+    setState(() {}); // Trigger a rebuild to refresh data
   }
 
   @override
@@ -92,151 +90,18 @@ class _HomePageState extends State<HomePage> {
 
                   final Timestamp timestamp = entry['date'];
                   final DateTime dateTime = timestamp.toDate();
-                  final formattedDate =
-                      DateFormat('EEE').format(dateTime); // Day of the week
-                  final formattedDay =
-                      DateFormat('dd').format(dateTime); // Day number
+                  final formattedDate = DateFormat('EEE').format(dateTime);
+                  final formattedDay = DateFormat('dd').format(dateTime);
                   final formattedMonthYear =
-                      DateFormat('MMM dd, yyyy').format(dateTime); // Full date
+                      DateFormat('MMM dd, yyyy').format(dateTime);
 
                   return Dismissible(
                     key: ValueKey(entry.id), // Use document ID as key
                     background: _buildCompleteTrip(),
                     secondaryBackground: _buildRemoveTrip(),
-                    onDismissed: (DismissDirection direction) async {
-                      if (direction == DismissDirection.startToEnd) {
-                        // Navigate to edit entry screen
-                        bool? deleteConfirmed = await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Delete Journal"),
-                              content: const Text(
-                                  "Are you sure you want to delete this journal entry?"),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(
-                                        false); // Close the dialog and return false
-                                  },
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(
-                                        true); // Close the dialog and return true
-                                  },
-                                  child: const Text('Delete'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (deleteConfirmed == true) {
-                          try {
-                            String userId =
-                                FirebaseAuth.instance.currentUser!.uid;
-                            String documentIdToDelete = entry.id;
-
-                            await FirebaseFirestore.instance
-                                .collection('journals')
-                                .doc(userId)
-                                .collection('userJournals')
-                                .doc(documentIdToDelete)
-                                .delete();
-
-                            print("Journal entry deleted successfully");
-                          } catch (error) {
-                            print("Failed to delete journal entry: $error");
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Error"),
-                                  content: Text(
-                                      "Failed to delete journal entry: $error"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Close the error dialog
-                                      },
-                                      child: const Text('OK'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
-                      } else {
-                        // Show delete confirmation dialog
-                        bool? deleteConfirmed = await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Delete Journal"),
-                              content: const Text(
-                                  "Are you sure you want to delete this journal entry?"),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(
-                                        false); // Close the dialog and return false
-                                  },
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(
-                                        true); // Close the dialog and return true
-                                  },
-                                  child: const Text('Delete'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (deleteConfirmed == true) {
-                          try {
-                            String userId =
-                                FirebaseAuth.instance.currentUser!.uid;
-                            String documentIdToDelete = entry.id;
-
-                            await FirebaseFirestore.instance
-                                .collection('journals')
-                                .doc(userId)
-                                .collection('userJournals')
-                                .doc(documentIdToDelete)
-                                .delete();
-
-                            print("Journal entry deleted successfully");
-                          } catch (error) {
-                            print("Failed to delete journal entry: $error");
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Error"),
-                                  content: Text(
-                                      "Failed to delete journal entry: $error"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Close the error dialog
-                                      },
-                                      child: const Text('OK'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
-                      }
+                    confirmDismiss: (DismissDirection direction) async {
+                      // Show delete confirmation dialog when user swipes
+                      return await _showDeleteConfirmationDialog(entry.id);
                     },
                     child: GestureDetector(
                       onTap: () {
@@ -349,6 +214,75 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Future<bool> _showDeleteConfirmationDialog(String entryId) async {
+    bool? deleteConfirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Delete Journal"),
+          content:
+              const Text("Are you sure you want to delete this journal entry?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(false); // Close the dialog and return false
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(true); // Close the dialog and return true
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (deleteConfirmed == true) {
+      try {
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+
+        await FirebaseFirestore.instance
+            .collection('journals')
+            .doc(userId)
+            .collection('userJournals')
+            .doc(entryId)
+            .delete();
+
+        print("Journal entry deleted successfully");
+
+        // Call _refreshData to reload data after deletion
+        _refreshData();
+      } catch (error) {
+        print("Failed to delete journal entry: $error");
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Error"),
+              content: Text("Failed to delete journal entry: $error"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the error dialog
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+
+    // Return true if item should be dismissed, otherwise false
+    return deleteConfirmed == true;
   }
 }
 

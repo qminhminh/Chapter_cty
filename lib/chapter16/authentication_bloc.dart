@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthenticationBloc {
@@ -19,10 +20,24 @@ class AuthenticationBloc {
     }
   }
 
-  Future<void> register(String email, String password) async {
+  Future<void> register(String email, String password, String image) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      final UserCredential userCredential =
+          await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Lấy User ID
+      final String uid = userCredential.user!.uid;
+
+      // Lưu thông tin người dùng vào Firestore với ID người dùng
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'id': uid,
+        'image': image,
+        'email': email,
+        'password': password,
+      });
     } catch (e) {
       print("Login Failed: $e");
     }

@@ -1,40 +1,53 @@
 import 'dart:async';
+
 import 'validators.dart';
 import 'authentication_bloc.dart';
 
 class LoginBloc {
-  AuthenticationBloc _authBloc; // Remove final
+  final AuthenticationBloc _authBloc;
 
-  // StreamController for email and password
-  final _emailController = StreamController<String>();
-  final _passwordController = StreamController<String>();
+  // Updated with .broadcast() to avoid the "Stream has already been listened to" error
+  final _emailController = StreamController<String>.broadcast();
+  final _passwordController = StreamController<String>.broadcast();
 
-  // Store latest values
   String _latestEmail = '';
   String _latestPassword = '';
 
-  // Initialize _authBloc in the constructor
   LoginBloc(this._authBloc);
 
-  // Combine validators to check data
-  Stream<String> get email =>
-      _emailController.stream.transform(Validators.validateEmail);
+  // Email stream with validation
+  Stream<String>? _emailStream;
+  Stream<String> get email {
+    if (_emailStream == null) {
+      _emailStream =
+          _emailController.stream.transform(Validators.validateEmail);
+    }
+    return _emailStream!;
+  }
 
-  Stream<String> get password =>
-      _passwordController.stream.transform(Validators.validatePassword);
+  // Password stream with validation
+  Stream<String>? _passwordStream;
+  Stream<String> get password {
+    if (_passwordStream == null) {
+      _passwordStream =
+          _passwordController.stream.transform(Validators.validatePassword);
+    }
+    return _passwordStream!;
+  }
 
-  // Add data to streams and update latest values
+  // Change email function
   Function(String) get changeEmail => (email) {
         _latestEmail = email;
         _emailController.sink.add(email);
       };
 
+  // Change password function
   Function(String) get changePassword => (password) {
         _latestPassword = password;
         _passwordController.sink.add(password);
       };
 
-  // Login method
+  // Submit login function
   void submitlogin() {
     final validEmail = _latestEmail;
     final validPassword = _latestPassword;
@@ -44,15 +57,17 @@ class LoginBloc {
     }
   }
 
-  void submitregister() {
+  // Submit register function
+  Future<void> submitregister(String imageUrl) async {
     final validEmail = _latestEmail;
     final validPassword = _latestPassword;
 
     if (validEmail.isNotEmpty && validPassword.isNotEmpty) {
-      _authBloc.register(validEmail, validPassword);
+      await _authBloc.register(validEmail, validPassword, imageUrl);
     }
   }
 
+  // Dispose the controllers when done
   void dispose() {
     _emailController.close();
     _passwordController.close();

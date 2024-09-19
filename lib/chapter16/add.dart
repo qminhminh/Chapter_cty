@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api
+// ignore_for_file: prefer_const_constructors, avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +79,6 @@ class _EditEntryAddState extends State<EditEntryAdd> {
       DateTime dateTime = DateTime.parse(date);
       Timestamp timestamp = Timestamp.fromDate(dateTime);
 
-      _showErrorDialog(timestamp.toString(), mood, note);
       String userId = FirebaseAuth.instance.currentUser!.uid;
       CollectionReference userJournals = FirebaseFirestore.instance
           .collection('journals')
@@ -108,6 +107,8 @@ class _EditEntryAddState extends State<EditEntryAdd> {
       // Lưu trạng thái vào BLoC
       _journalEditBloc.saveJournalChanged.add('Save');
       // Navigator.pop(context); // Đóng màn hình sau khi lưu
+      _showErrorDialog(timestamp.toString(), mood, note);
+      Navigator.pop(context);
     } catch (e) {
       print('Error: $e');
     }
@@ -119,15 +120,7 @@ class _EditEntryAddState extends State<EditEntryAdd> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Test'),
-          content: Text('$date + $mood + $note'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          content: Text('Add Success: $date, $mood, $note'),
         );
       },
     );
@@ -244,12 +237,13 @@ class _EditEntryAddState extends State<EditEntryAdd> {
                 // Note Input
                 TextField(
                   controller: _noteController,
-                  maxLines: 6,
-                  decoration: InputDecoration(
-                    labelText: 'Notes',
-                    border: OutlineInputBorder(),
-                    hintText: 'Enter your note here',
+                  textInputAction: TextInputAction.newline,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    labelText: 'Note',
+                    icon: Icon(Icons.subject),
                   ),
+                  maxLines: null,
                 ),
 
                 Row(

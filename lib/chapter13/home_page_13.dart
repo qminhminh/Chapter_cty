@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.lightGreen, Colors.lightGreen.shade50],
+              colors: [Colors.blue, Colors.lightGreen.shade50],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Container(
-        color: const Color.fromARGB(255, 201, 241, 155),
+        color: Color.fromARGB(255, 255, 255, 255),
         child: RefreshIndicator(
           onRefresh: _refreshData,
           child: journalEntries.isEmpty
@@ -162,7 +162,8 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 28,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.green[700],
+                                            color: const Color.fromARGB(
+                                                255, 65, 153, 225),
                                           ),
                                         ),
                                         Text(
@@ -218,26 +219,37 @@ class _HomePageState extends State<HomePage> {
                 ),
         ),
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomCenter,
-        child: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => JournalEditBlocProvider(
-                  journalEditBloc: JournalEditBloc(),
-                  child: EditEntryAdd(),
-                ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.centerDocked, // Điều chỉnh lại vị trí
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        shape: CircleBorder(), // Đảm bảo hình dạng là hình tròn
+        elevation: 10.0, // Tăng chiều sâu của nút
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => JournalEditBlocProvider(
+                journalEditBloc: JournalEditBloc(),
+                child: EditEntryAdd(),
               ),
-            ).then((value) {
-              if (value == true) {
-                // Nếu giá trị trả về là true, tải lại dữ liệu
-                _loadJournalEntries();
-              }
-            });
-          },
+            ),
+          ).then((value) {
+            if (value == true) {
+              // Nếu giá trị trả về là true, tải lại dữ liệu
+              _loadJournalEntries();
+            }
+          });
+        },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Container(
+          height: 60.0,
+          color: Colors.blue,
         ),
       ),
     );

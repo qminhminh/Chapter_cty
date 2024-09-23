@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print, library_private_types_in_public_api, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
+// ignore_for_file: use_build_context_synchronously, avoid_print, library_private_types_in_public_api, prefer_const_constructors_in_immutables, use_key_in_widget_constructors, prefer_const_constructors
 
 import 'dart:convert';
 
@@ -147,7 +147,7 @@ class _EditEntryState extends State<EditEntry> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.lightGreen, Colors.lightGreen.shade50],
+              colors: [Colors.blue, Colors.lightGreen.shade50],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -155,7 +155,7 @@ class _EditEntryState extends State<EditEntry> {
         ),
       ),
       body: Container(
-        color: const Color.fromARGB(255, 201, 241, 155),
+        color: Color.fromARGB(255, 127, 196, 249),
         child: SafeArea(
           minimum: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -203,7 +203,7 @@ class _EditEntryState extends State<EditEntry> {
                       orElse: () => MoodIcon(
                         title: 'Very Satisfied',
                         icon: Icons.sentiment_very_satisfied,
-                        color: Colors.green,
+                        color: Colors.blue,
                         rotation: 0.0,
                       ),
                     );

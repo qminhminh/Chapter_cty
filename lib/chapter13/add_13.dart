@@ -105,7 +105,10 @@ class _EditEntryAddState extends State<EditEntryAdd> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.lightGreen, Colors.lightGreen.shade50],
+              colors: [
+                const Color.fromARGB(255, 133, 180, 255),
+                Colors.lightGreen.shade50
+              ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -113,7 +116,7 @@ class _EditEntryAddState extends State<EditEntryAdd> {
         ),
       ),
       body: Container(
-        color: const Color.fromARGB(255, 201, 241, 155),
+        color: const Color.fromARGB(255, 115, 179, 247),
         child: SafeArea(
           minimum: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -138,7 +141,9 @@ class _EditEntryAddState extends State<EditEntryAdd> {
                               size: 22.0, color: Colors.black54),
                           const SizedBox(width: 16.0),
                           Text(
-                            _formatDates.dateTimeFormat(DateTime.parse(date)),
+                            _formatDates.dateTimeFormat(
+                              DateTime.parse(date),
+                            ),
                             style: const TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.bold),

@@ -131,9 +131,31 @@ class _EditEntryState extends State<EditEntry> {
 
       // Notify BLoC of the save action
       _journalEditBloc.saveJournalChanged.add('Save');
+      _showSuccessDialog("Entry updated successfully");
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  void _showSuccessDialog(String note) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: Text('Journal entry saved: $note'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context); // Đóng dialog
+                Navigator.pop(context, true); // Quay lại màn hình trước
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

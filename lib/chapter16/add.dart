@@ -107,20 +107,28 @@ class _EditEntryAddState extends State<EditEntryAdd> {
       // Lưu trạng thái vào BLoC
       _journalEditBloc.saveJournalChanged.add('Save');
       // Navigator.pop(context); // Đóng màn hình sau khi lưu
-      _showErrorDialog(timestamp.toString(), mood, note);
-      Navigator.pop(context);
+      _showSuccessDialog(note);
     } catch (e) {
       print('Error: $e');
     }
   }
 
-  void _showErrorDialog(String date, String mood, String note) {
+  void _showSuccessDialog(String note) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Test'),
-          content: Text('Add Success: $date, $mood, $note'),
+          title: const Text('Success'),
+          content: Text('Journal entry saved: $note'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context); // Đóng dialog
+                Navigator.pop(context, true); // Quay lại màn hình trước
+              },
+            ),
+          ],
         );
       },
     );

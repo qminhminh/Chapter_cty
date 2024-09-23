@@ -1,19 +1,32 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, avoid_print
+// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors, library_private_types_in_public_api
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart'; // Import path_provider
 import 'package:tuhoc_cty/chapter16/format_dates.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
 import 'package:tuhoc_cty/chapter16/mood_icons.dart';
-import 'dart:convert'; // Để convert giữa String và Map
 
-class EditEntryAdd extends StatefulWidget {
+class EditEntry extends StatefulWidget {
+  final String entryId;
+  final DateTime date;
+  final String note;
+  final String mood;
+
+  EditEntry({
+    required this.entryId,
+    required this.date,
+    required this.note,
+    required this.mood,
+  });
+
   @override
-  _EditEntryAddState createState() => _EditEntryAddState();
+  _EditEntryState createState() => _EditEntryState();
 }
 
-class _EditEntryAddState extends State<EditEntryAdd> {
+class _EditEntryState extends State<EditEntry> {
   late JournalEditBloc _journalEditBloc;
   late FormatDates _formatDates;
   late MoodIcons _moodIcons;
@@ -24,7 +37,7 @@ class _EditEntryAddState extends State<EditEntryAdd> {
     super.initState();
     _formatDates = FormatDates();
     _moodIcons = MoodIcons();
-    _noteController = TextEditingController();
+    _noteController = TextEditingController(text: widget.note);
   }
 
   @override
@@ -33,10 +46,10 @@ class _EditEntryAddState extends State<EditEntryAdd> {
     final JournalEditBlocProvider? provider =
         JournalEditBlocProvider.of(context);
     if (provider == null) {
-      throw StateError(
-          'JournalEditBlocProvider không tìm thấy trong cây widget.');
+      throw StateError('JournalEditBlocProvider not found in widget tree.');
     }
     _journalEditBloc = provider.journalEditBloc;
+    _journalEditBloc.initialize();
   }
 
   @override
@@ -44,205 +57,6 @@ class _EditEntryAddState extends State<EditEntryAdd> {
     _noteController.dispose();
     _journalEditBloc.dispose();
     super.dispose();
-  }
-
-  Future<void> _addJournal() async {
-    try {
-      String note = _noteController.text;
-      String date = _journalEditBloc.currentDate;
-      String mood = _journalEditBloc.currentMood;
-
-      DateTime dateTime = DateTime.parse(date);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? savedJournals = prefs.getString('journals');
-      List<Map<String, dynamic>> journalList = savedJournals != null
-          ? List<Map<String, dynamic>>.from(json.decode(savedJournals))
-          : [];
-
-      String newEntryId = DateTime.now().millisecondsSinceEpoch.toString();
-
-      journalList.add({
-        'id': newEntryId, // Unique ID for the new entry
-        'date': dateTime.toIso8601String(),
-        'mood': mood,
-        'note': note,
-      });
-
-      await prefs.setString('journals', json.encode(journalList));
-      _showSuccessDialog("Entry added successfully");
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  void _showSuccessDialog(String note) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Success'),
-          content: Text('Journal entry saved: $note'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.pop(context); // Đóng dialog
-                Navigator.pop(context, true); // Quay lại màn hình trước
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title:
-            Text('Entry', style: TextStyle(color: Colors.lightGreen.shade800)),
-        automaticallyImplyLeading: false,
-        elevation: 0.0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color.fromARGB(255, 133, 180, 255),
-                Colors.lightGreen.shade50
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        color: const Color.fromARGB(255, 115, 179, 247),
-        child: SafeArea(
-          minimum: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                // Date Picker
-                StreamBuilder<String>(
-                  stream: _journalEditBloc.dateEdit,
-                  builder:
-                      (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    String date = snapshot.data ?? DateTime.now().toString();
-                    return TextButton(
-                      onPressed: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        String pickedDate = await _selectDate(date);
-                        _journalEditBloc.dateEditChanged.add(pickedDate);
-                      },
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(Icons.calendar_today,
-                              size: 22.0, color: Colors.black54),
-                          const SizedBox(width: 16.0),
-                          Text(
-                            _formatDates.dateTimeFormat(
-                              DateTime.parse(date),
-                            ),
-                            style: const TextStyle(
-                                color: Colors.black54,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Icon(Icons.arrow_drop_down,
-                              color: Colors.black54),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                // Mood Picker
-                StreamBuilder<String>(
-                  stream: _journalEditBloc.moodEdit,
-                  builder:
-                      (BuildContext context, AsyncSnapshot<String> snapshot) {
-                    String mood = snapshot.data ?? 'Very Satisfied';
-                    List<MoodIcon> moodIconsList =
-                        _moodIcons.getMoodIconsList();
-                    MoodIcon selectedMoodIcon = moodIconsList.firstWhere(
-                      (icon) => icon.title == mood,
-                      orElse: () => MoodIcon(
-                        title: 'Very Satisfied',
-                        icon: Icons.sentiment_very_satisfied,
-                        color: Colors.green,
-                        rotation: 0.0,
-                      ),
-                    );
-                    return DropdownButtonHideUnderline(
-                      child: DropdownButton<MoodIcon>(
-                        value: selectedMoodIcon,
-                        onChanged: (MoodIcon? selected) {
-                          if (selected != null) {
-                            _journalEditBloc.moodEditChanged
-                                .add(selected.title);
-                          }
-                        },
-                        items: moodIconsList.map((MoodIcon mood) {
-                          return DropdownMenuItem<MoodIcon>(
-                            value: mood,
-                            child: Row(
-                              children: <Widget>[
-                                Transform(
-                                  transform: Matrix4.identity()
-                                    ..rotateZ(mood.rotation),
-                                  child: Icon(
-                                    mood.icon,
-                                    size: 24.0,
-                                    color: mood.color,
-                                  ),
-                                ),
-                                const SizedBox(width: 16.0),
-                                Text(mood.title),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                ),
-                // Note Input
-                TextField(
-                  controller: _noteController,
-                  textInputAction: TextInputAction.newline,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Note',
-                    icon: Icon(Icons.subject),
-                  ),
-                  maxLines: null,
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(width: 8.0),
-                    TextButton(
-                      child: const Text('Save'),
-                      onPressed: () async {
-                        await _addJournal();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Future<String> _selectDate(String selectedDate) async {
@@ -266,5 +80,214 @@ class _EditEntryAddState extends State<EditEntryAdd> {
       ).toString();
     }
     return selectedDate;
+  }
+
+  Future<void> _updateJournal() async {
+    try {
+      String note = _noteController.text;
+      String date = _journalEditBloc.currentDate;
+      String mood = _journalEditBloc.currentMood;
+      DateTime dateTime = DateTime.parse(date);
+
+      final directory = await getApplicationDocumentsDirectory();
+      final journalDirectory = Directory('${directory.path}/journals');
+      final file = File('${journalDirectory.path}/journals.txt');
+
+      List<Map<String, dynamic>> journalList = [];
+      if (await file.exists()) {
+        String contents = await file.readAsString();
+        journalList = List<Map<String, dynamic>>.from(json.decode(contents));
+      }
+
+      final journalMap = {
+        for (var journal in journalList) journal['id']: journal
+      };
+
+      if (journalMap.containsKey(widget.entryId)) {
+        final entry = journalMap[widget.entryId]!;
+        entry['date'] = dateTime.toIso8601String();
+        entry['mood'] = mood;
+        entry['note'] = note;
+
+        journalList = journalMap.values.toList();
+        await file.writeAsString(json.encode(journalList));
+        _showSuccessDialog("Entry updated successfully");
+      } else {
+        print('Entry ID not found.');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  void _showSuccessDialog(String note) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: Text('Journal entry saved: $note'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context, true); // Return to previous screen
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title:
+            Text('Entry', style: TextStyle(color: Colors.lightGreen.shade800)),
+        automaticallyImplyLeading: false,
+        elevation: 0.0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.lightGreen.shade50],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+      ),
+      body: Container(
+        color: Color.fromARGB(255, 127, 196, 249),
+        child: SafeArea(
+          minimum: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                StreamBuilder<String>(
+                  stream: _journalEditBloc.dateEdit,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    String date = snapshot.data ?? widget.date.toString();
+                    return TextButton(
+                      onPressed: () async {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        String pickedDate = await _selectDate(date);
+                        _journalEditBloc.dateEditChanged.add(pickedDate);
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          const Icon(Icons.calendar_today,
+                              size: 22.0, color: Colors.black54),
+                          const SizedBox(width: 16.0),
+                          Text(
+                            _formatDates.dateTimeFormat(DateTime.parse(date)),
+                            style: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Icon(Icons.arrow_drop_down,
+                              color: Colors.black54),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                StreamBuilder<String>(
+                  stream: _journalEditBloc.moodEdit,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    String mood = snapshot.data ?? widget.mood;
+                    List<MoodIcon> moodIconsList =
+                        _moodIcons.getMoodIconsList();
+                    MoodIcon selectedMoodIcon = moodIconsList.firstWhere(
+                      (icon) => icon.title == mood,
+                      orElse: () => MoodIcon(
+                        title: 'Very Satisfied',
+                        icon: Icons.sentiment_very_satisfied,
+                        color: Colors.blue,
+                        rotation: 0.0,
+                      ),
+                    );
+                    bool isValidValue =
+                        moodIconsList.any((icon) => icon.title == mood);
+                    return DropdownButtonHideUnderline(
+                      child: DropdownButton<MoodIcon>(
+                        value: isValidValue ? selectedMoodIcon : null,
+                        onChanged: (MoodIcon? selected) {
+                          if (selected != null) {
+                            _journalEditBloc.moodEditChanged
+                                .add(selected.title);
+                          }
+                        },
+                        items: moodIconsList.map((MoodIcon mood) {
+                          return DropdownMenuItem<MoodIcon>(
+                            value: mood,
+                            child: Row(
+                              children: <Widget>[
+                                Transform(
+                                  transform: Matrix4.identity()
+                                    ..rotateZ(mood.rotation),
+                                  alignment: Alignment.center,
+                                  child: Icon(mood.icon, color: mood.color),
+                                ),
+                                const SizedBox(width: 16.0),
+                                Text(mood.title),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+                StreamBuilder<String>(
+                  stream: _journalEditBloc.noteEdit,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    _noteController.value = _noteController.value.copyWith(
+                      text: snapshot.data ?? widget.note,
+                    );
+                    return TextField(
+                      controller: _noteController,
+                      textInputAction: TextInputAction.newline,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: const InputDecoration(
+                        labelText: 'Note',
+                        icon: Icon(Icons.subject),
+                      ),
+                      maxLines: null,
+                      onChanged: (note) =>
+                          _journalEditBloc.noteEditChanged.add(note),
+                    );
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    TextButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(width: 8.0),
+                    TextButton(
+                      child: const Text('Save'),
+                      onPressed: () async {
+                        await _updateJournal();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

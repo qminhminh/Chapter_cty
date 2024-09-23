@@ -1,16 +1,17 @@
-// ignore_for_file: unused_local_variable, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: prefer_interpolation_to_compose_strings, avoid_print, unnecessary_brace_in_string_interps
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tuhoc_cty/chapter13/add_13.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:tuhoc_cty/chapter13/addd_13.dart';
+import 'package:tuhoc_cty/chapter13/editt_13.dart';
 import 'package:tuhoc_cty/chapter13/jouney_model.dart';
-import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'dart:convert';
+import 'dart:io';
 
-import 'edit_13.dart';
-import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
+import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
+import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
 
 class HomePage extends StatefulWidget {
   final AuthenticationBloc _authBloc;
@@ -28,34 +29,39 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadJournalEntries();
+    print("journalEntries: " + journalEntries.toString());
   }
 
   Future<void> _loadJournalEntries() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedEntries = prefs.getString('journals');
-
-    if (savedEntries != null) {
-      setState(() {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final journalDirectory = Directory('${directory.path}/journals');
+      final file = File('${journalDirectory.path}/journals.txt');
+      if (await file.exists()) {
+        String savedEntries = await file.readAsString();
         List<Map<String, dynamic>> entriesList =
             List<Map<String, dynamic>>.from(json.decode(savedEntries));
-        journalEntries =
-            entriesList.map((entry) => JournalEntry.fromMap(entry)).toList();
 
-        // Sort the journal entries by date (descending)
-        journalEntries.sort((entry1, entry2) {
-          DateTime date1 = DateTime.parse(entry1.date);
-          DateTime date2 = DateTime.parse(entry2.date);
-          return date2.compareTo(date1);
+        // Debugging log to check if data is read correctly
+        print('Loaded entries: $entriesList');
+
+        setState(() {
+          journalEntries =
+              entriesList.map((entry) => JournalEntry.fromMap(entry)).toList();
+
+          // Sort the journal entries by date (descending)
+          journalEntries.sort((entry1, entry2) {
+            DateTime date1 = DateTime.parse(entry1.date);
+            DateTime date2 = DateTime.parse(entry2.date);
+            return date2.compareTo(date1);
+          });
         });
-      });
+      } else {
+        print('File does not exist');
+      }
+    } catch (e) {
+      print('Error loading journal entries: $e');
     }
-  }
-
-  Future<void> _saveJournalEntries() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<Map<String, dynamic>> entriesList =
-        journalEntries.map((entry) => entry.toMap()).toList();
-    prefs.setString('journals', json.encode(entriesList));
   }
 
   Future<void> _deleteJournalEntry(int index) async {
@@ -65,8 +71,24 @@ class _HomePageState extends State<HomePage> {
     await _saveJournalEntries();
   }
 
+  Future<void> _saveJournalEntries() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final journalDirectory = Directory('${directory.path}/journals');
+      final file = File('${journalDirectory.path}/journals.txt');
+      List<Map<String, dynamic>> entriesList =
+          journalEntries.map((entry) => entry.toMap()).toList();
+      await file.writeAsString(json.encode(entriesList));
+
+      // Debugging log to check if data is saved correctly
+      print('Saved entries: ${entriesList}');
+    } catch (e) {
+      print('Error saving journal entries: $e');
+    }
+  }
+
   Future<void> _refreshData() async {
-    setState(() {});
+    await _loadJournalEntries(); // Reload data when refreshed
   }
 
   @override
@@ -135,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ).then((value) {
                             if (value == true) {
-                              _loadJournalEntries();
+                              _loadJournalEntries(); // Reload data after edit
                             }
                           });
                         },
@@ -230,7 +252,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ).then((value) {
             if (value == true) {
-              _loadJournalEntries();
+              _loadJournalEntries(); // Reload data after adding new entry
             }
           });
         },
@@ -300,7 +322,7 @@ Container _buildCompleteTrip() {
 
 Container _buildRemoveTrip() {
   return Container(
-    color: Colors.green,
+    color: Colors.red,
     child: const Padding(
       padding: EdgeInsets.all(16.0),
       child: Row(

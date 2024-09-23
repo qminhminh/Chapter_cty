@@ -31,9 +31,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tuhoc_cty/BlocAndFirebase/Login_cubit.dart';
+import 'package:tuhoc_cty/chapter13/home_page_13.dart';
 import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
 import 'package:tuhoc_cty/chapter16/edit_entry.dart';
-import 'package:tuhoc_cty/chapter16/home_page.dart';
+// import 'package:tuhoc_cty/chapter16/home_page.dart';
 import 'package:tuhoc_cty/chapter16/login_bloc.dart';
 import 'package:tuhoc_cty/chapter16/login_page.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
@@ -79,8 +80,12 @@ class MyApp extends StatelessWidget {
               child: HomePage(_authBloc),
             );
           } else {
-            return LoginPage(
-                LoginBloc(_authBloc)); // Pass AuthenticationBloc here
+            return JournalEditBlocProvider(
+              journalEditBloc: JournalEditBloc(),
+              child: HomePage(_authBloc),
+            );
+            // return LoginPage(
+            //     LoginBloc(_authBloc)); // Pass AuthenticationBloc here
           }
         },
       ),

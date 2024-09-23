@@ -59,6 +59,7 @@ class _HomePageState extends State<HomePage> {
                 .collection('journals')
                 .doc(FirebaseAuth.instance.currentUser!.uid)
                 .collection('userJournals')
+                .orderBy('date', descending: true)
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {

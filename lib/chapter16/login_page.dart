@@ -69,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
                     return TextField(
                       onChanged: widget._loginBloc.changePassword,
                       obscureText: true,
+                      keyboardType: TextInputType.visiblePassword,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),

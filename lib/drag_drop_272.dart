@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers, avoid_print
+
 import 'package:flutter/material.dart';
 
 class DragandDropApp extends StatefulWidget {
@@ -104,8 +106,8 @@ GestureDetector _buildGestureDetector() {
     child: Container(
       color: Colors.lightGreen.shade100,
       width: double.infinity,
-      padding: EdgeInsets.all(24.0),
-      child: Column(
+      padding: const EdgeInsets.all(24.0),
+      child: const Column(
         children: <Widget>[
           Icon(
             Icons.access_alarm,

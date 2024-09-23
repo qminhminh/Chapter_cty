@@ -1,14 +1,14 @@
-// ignore_for_file: prefer_for_elements_to_map_fromiterable, use_build_context_synchronously, avoid_print, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: use_build_context_synchronously, prefer_for_elements_to_map_fromiterable, avoid_print, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:tuhoc_cty/chapter16/add.dart';
 import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
 import 'package:tuhoc_cty/chapter16/edit_entry.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
+import 'package:tuhoc_cty/chapter16/model_chap16.dart';
 import 'package:tuhoc_cty/chapter16/mood_icons.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,7 +21,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Refresh function to reload data
   Future<void> _refreshData() async {
     setState(() {}); // Trigger a rebuild to refresh data
   }
@@ -77,12 +76,15 @@ class _HomePageState extends State<HomePage> {
                 value: (mood) => mood,
               );
 
-              var entries = snapshot.data!.docs;
+              var entries = snapshot.data!.docs
+                  .map((doc) => JournalEntry.fromDocument(doc))
+                  .toList();
+
               return ListView.builder(
                 itemCount: entries.length,
                 itemBuilder: (context, index) {
                   var entry = entries[index];
-                  var mood = entry['mood'];
+                  var mood = entry.mood;
                   var moodIcon = moodIconMap[mood] ??
                       MoodIcon(
                         title: 'Unknown',
@@ -91,19 +93,11 @@ class _HomePageState extends State<HomePage> {
                         rotation: 0.0,
                       );
 
-                  final Timestamp timestamp = entry['date'];
-                  final DateTime dateTime = timestamp.toDate();
-                  final formattedDate = DateFormat('EEE').format(dateTime);
-                  final formattedDay = DateFormat('dd').format(dateTime);
-                  final formattedMonthYear =
-                      DateFormat('MMM dd, yyyy').format(dateTime);
-
                   return Dismissible(
-                    key: ValueKey(entry.id), // Use document ID as key
+                    key: ValueKey(entry.id),
                     background: _buildCompleteTrip(),
                     secondaryBackground: _buildRemoveTrip(),
                     confirmDismiss: (DismissDirection direction) async {
-                      // Show delete confirmation dialog when user swipes
                       return await _showDeleteConfirmationDialog(entry.id);
                     },
                     child: GestureDetector(
@@ -115,9 +109,9 @@ class _HomePageState extends State<HomePage> {
                               journalEditBloc: JournalEditBloc(),
                               child: EditEntry(
                                 entryId: entry.id,
-                                date: dateTime,
-                                note: entry['note'],
-                                mood: entry['mood'],
+                                date: entry.date,
+                                note: entry.note,
+                                mood: entry.mood,
                               ),
                             ),
                           ),
@@ -132,11 +126,10 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Row(
                                 children: [
-                                  // Ngày và thứ
                                   Column(
                                     children: [
                                       Text(
-                                        formattedDay,
+                                        entry.formattedDay,
                                         style: TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.bold,
@@ -144,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                       Text(
-                                        formattedDate,
+                                        entry.formattedDate,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey,
@@ -153,14 +146,13 @@ class _HomePageState extends State<HomePage> {
                                     ],
                                   ),
                                   const SizedBox(width: 16.0),
-                                  // Thông tin chi tiết
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          formattedMonthYear,
+                                          entry.formattedMonthYear,
                                           style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -169,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          entry['note'],
+                                          entry.note,
                                           style: const TextStyle(
                                             fontSize: 14,
                                             color: Colors.black54,
@@ -178,7 +170,6 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  // Biểu tượng cảm xúc
                                   Icon(
                                     moodIcon.icon,
                                     color: moodIcon.color,
@@ -260,7 +251,6 @@ class _HomePageState extends State<HomePage> {
 
         print("Journal entry deleted successfully");
 
-        // Call _refreshData to reload data after deletion
         _refreshData();
       } catch (error) {
         print("Failed to delete journal entry: $error");
@@ -284,7 +274,6 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    // Return true if item should be dismissed, otherwise false
     return deleteConfirmed == true;
   }
 }

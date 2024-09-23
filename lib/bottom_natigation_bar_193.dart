@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 
 class BottomNavigationBart extends StatefulWidget {
@@ -18,7 +20,6 @@ class _BottomNavigationBartState extends State<BottomNavigationBart> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _currentPage = const Homepage();
   }

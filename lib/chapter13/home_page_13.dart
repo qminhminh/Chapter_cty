@@ -1,15 +1,16 @@
-// ignore_for_file: prefer_const_constructors, unused_local_variable
+// ignore_for_file: unused_local_variable, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tuhoc_cty/chapter13/add_13.dart';
-import 'package:tuhoc_cty/chapter13/edit_13.dart';
+import 'package:tuhoc_cty/chapter13/jouney_model.dart';
+import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'dart:convert';
 
+import 'edit_13.dart';
 import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
-import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
-import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart'; // For JSON encoding/decoding
+import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
 
 class HomePage extends StatefulWidget {
   final AuthenticationBloc _authBloc;
@@ -21,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> journalEntries = [];
+  List<JournalEntry> journalEntries = [];
 
   @override
   void initState() {
@@ -29,40 +30,34 @@ class _HomePageState extends State<HomePage> {
     _loadJournalEntries();
   }
 
-  // Load entries from local storage
   Future<void> _loadJournalEntries() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedEntries = prefs.getString('journals');
 
     if (savedEntries != null) {
       setState(() {
-        journalEntries =
+        List<Map<String, dynamic>> entriesList =
             List<Map<String, dynamic>>.from(json.decode(savedEntries));
+        journalEntries =
+            entriesList.map((entry) => JournalEntry.fromMap(entry)).toList();
 
         // Sort the journal entries by date (descending)
         journalEntries.sort((entry1, entry2) {
-          DateTime date1 = DateTime.parse(entry1['date']);
-          DateTime date2 = DateTime.parse(entry2['date']);
-          return date2.compareTo(date1); // Descending order
+          DateTime date1 = DateTime.parse(entry1.date);
+          DateTime date2 = DateTime.parse(entry2.date);
+          return date2.compareTo(date1);
         });
-
-        // If you want ascending order, use:
-        // journalEntries.sort((entry1, entry2) {
-        //   DateTime date1 = DateTime.parse(entry1['date']);
-        //   DateTime date2 = DateTime.parse(entry2['date']);
-        //   return date1.compareTo(date2); // Ascending order
-        // });
       });
     }
   }
 
-  // Save entries to local storage
   Future<void> _saveJournalEntries() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('journals', json.encode(journalEntries));
+    List<Map<String, dynamic>> entriesList =
+        journalEntries.map((entry) => entry.toMap()).toList();
+    prefs.setString('journals', json.encode(entriesList));
   }
 
-  // Delete entry
   Future<void> _deleteJournalEntry(int index) async {
     setState(() {
       journalEntries.removeAt(index);
@@ -70,7 +65,6 @@ class _HomePageState extends State<HomePage> {
     await _saveJournalEntries();
   }
 
-  // Refresh function to reload data
   Future<void> _refreshData() async {
     setState(() {});
   }
@@ -100,7 +94,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Container(
-        color: Color.fromARGB(255, 255, 255, 255),
+        color: const Color.fromARGB(255, 255, 255, 255),
         child: RefreshIndicator(
           onRefresh: _refreshData,
           child: journalEntries.isEmpty
@@ -109,9 +103,9 @@ class _HomePageState extends State<HomePage> {
                   itemCount: journalEntries.length,
                   itemBuilder: (context, index) {
                     var entry = journalEntries[index];
-                    var mood = entry['mood'];
+                    var mood = entry.mood;
 
-                    final DateTime dateTime = DateTime.parse(entry['date']);
+                    final DateTime dateTime = DateTime.parse(entry.date);
                     final formattedDate = DateFormat('EEE').format(dateTime);
                     final formattedDay = DateFormat('dd').format(dateTime);
                     final formattedMonthYear =
@@ -132,16 +126,15 @@ class _HomePageState extends State<HomePage> {
                               builder: (context) => JournalEditBlocProvider(
                                 journalEditBloc: JournalEditBloc(),
                                 child: EditEntry(
-                                  entryId: entry['id'],
+                                  entryId: entry.id,
                                   date: dateTime,
-                                  note: entry['note'],
-                                  mood: entry['mood'],
+                                  note: entry.note,
+                                  mood: entry.mood,
                                 ),
                               ),
                             ),
                           ).then((value) {
                             if (value == true) {
-                              // Kiểm tra xem có cần tải lại không
                               _loadJournalEntries();
                             }
                           });
@@ -159,10 +152,10 @@ class _HomePageState extends State<HomePage> {
                                       children: [
                                         Text(
                                           formattedDay,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 28,
                                             fontWeight: FontWeight.bold,
-                                            color: const Color.fromARGB(
+                                            color: Color.fromARGB(
                                                 255, 65, 153, 225),
                                           ),
                                         ),
@@ -191,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            entry['note'],
+                                            entry.note,
                                             style: const TextStyle(
                                               fontSize: 14,
                                               color: Colors.black54,
@@ -200,7 +193,7 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
                                     ),
-                                    Icon(
+                                    const Icon(
                                       Icons
                                           .sentiment_satisfied, // Placeholder for mood icon
                                       color: Colors.green,
@@ -219,12 +212,11 @@ class _HomePageState extends State<HomePage> {
                 ),
         ),
       ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerDocked, // Điều chỉnh lại vị trí
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         mini: true,
-        shape: CircleBorder(), // Đảm bảo hình dạng là hình tròn
-        elevation: 10.0, // Tăng chiều sâu của nút
+        shape: const CircleBorder(),
+        elevation: 10.0,
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
         onPressed: () {
@@ -238,14 +230,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ).then((value) {
             if (value == true) {
-              // Nếu giá trị trả về là true, tải lại dữ liệu
               _loadJournalEntries();
             }
           });
         },
       ),
       bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
         child: Container(
           height: 60.0,
@@ -266,15 +257,13 @@ class _HomePageState extends State<HomePage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context)
-                    .pop(false); // Close the dialog and return false
+                Navigator.of(context).pop(false);
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context)
-                    .pop(true); // Close the dialog and return true
+                Navigator.of(context).pop(true);
               },
               child: const Text('Delete'),
             ),
@@ -311,7 +300,7 @@ Container _buildCompleteTrip() {
 
 Container _buildRemoveTrip() {
   return Container(
-    color: Colors.red,
+    color: Colors.green,
     child: const Padding(
       padding: EdgeInsets.all(16.0),
       child: Row(

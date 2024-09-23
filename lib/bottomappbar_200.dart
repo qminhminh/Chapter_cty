@@ -19,14 +19,14 @@ class _BottomAppBarState extends State<BottomAppBar> {
         title: const Text('Versatile BottomAppBar'),
       ),
       bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
+        shape: const CircularNotchedRectangle(),
         notchMargin: 4.0,
         child: Row(
           children: [
-            IconButton(icon: Icon(Icons.menu), onPressed: () {}),
-            Spacer(),
-            IconButton(icon: Icon(Icons.search), onPressed: () {}),
-            IconButton(icon: Icon(Icons.more_vert), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+            const Spacer(),
+            IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
           ],
         ),
       ),

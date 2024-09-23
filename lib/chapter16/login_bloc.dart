@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_conditional_assignment
+
 import 'dart:async';
 
 import 'validators.dart';

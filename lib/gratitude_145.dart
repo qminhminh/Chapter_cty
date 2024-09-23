@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_final_fields, avoid_print
+
 import 'package:flutter/material.dart';
 
 class Gratitude extends StatefulWidget {

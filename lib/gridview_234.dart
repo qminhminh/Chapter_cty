@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers, avoid_print
+
 import 'package:flutter/material.dart';
 
 class GridIcons {
@@ -37,14 +39,14 @@ class GridViewBuilderWidget extends StatelessWidget {
     List<IconData> _iconList = GridIcons().getIconList();
     return GridView.builder(
       itemCount: 20,
-      padding: EdgeInsets.all(8.0),
-      gridDelegate:
-          SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 150.0),
+      padding: const EdgeInsets.all(8.0),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 150.0),
       itemBuilder: (BuildContext context, int index) {
         print('_buildGridViewBuilder $index');
         return Card(
           color: Colors.lightGreen.shade50,
-          margin: EdgeInsets.all(8.0),
+          margin: const EdgeInsets.all(8.0),
           child: InkWell(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -54,11 +56,11 @@ class GridViewBuilderWidget extends StatelessWidget {
                   size: 48.0,
                   color: Colors.lightGreen,
                 ),
-                Divider(),
+                const Divider(),
                 Text(
                   'Index $index',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16.0,
                   ),
                 )

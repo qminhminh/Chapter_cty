@@ -77,8 +77,8 @@ class _MenuListTileWidgetState extends State<MenuListTileWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.home),
-      title: Text('Home'),
+      leading: const Icon(Icons.home),
+      title: const Text('Home'),
       onTap: () {
         // Handle tap
       },

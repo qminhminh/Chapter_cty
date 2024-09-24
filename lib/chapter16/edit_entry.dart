@@ -49,6 +49,7 @@ class _EditEntryState extends State<EditEntry> {
     }
     _journalEditBloc = provider.journalEditBloc;
     _journalEditBloc.initialize();
+    _journalEditBloc.moodEditChanged.add(widget.mood);
   }
 
   @override
@@ -149,7 +150,7 @@ class _EditEntryState extends State<EditEntry> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.pop(context); // Đóng dialog
-                Navigator.pop(context, true); // Quay lại màn hình trước
+                // Quay lại màn hình trước
               },
             ),
           ],

@@ -125,7 +125,7 @@ class _EditEntryAddState extends State<EditEntryAdd> {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.pop(context); // Đóng dialog
-                Navigator.pop(context, true); // Quay lại màn hình trước
+                // Quay lại màn hình trước
               },
             ),
           ],

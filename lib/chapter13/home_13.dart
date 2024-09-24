@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc.dart';
 import 'package:tuhoc_cty/chapter16/journal_edit_bloc_provider.dart';
 import 'package:tuhoc_cty/chapter16/authentication_bloc.dart';
+import 'package:tuhoc_cty/chapter16/mood_icons.dart';
 
 class HomePage extends StatefulWidget {
   final AuthenticationBloc _authBloc;
@@ -95,12 +96,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Journal Entries'),
+        title: const Text('Local Reference'),
         elevation: 0.0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue, Colors.lightGreen.shade50],
+              colors: [Colors.blue, Color.fromARGB(255, 144, 202, 249)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -125,8 +126,21 @@ class _HomePageState extends State<HomePage> {
                   itemCount: journalEntries.length,
                   itemBuilder: (context, index) {
                     var entry = journalEntries[index];
+                    var moodIcons = MoodIcons();
+                    // ignore: prefer_for_elements_to_map_fromiterable
+                    var moodIconMap = Map<String, MoodIcon>.fromIterable(
+                      moodIcons.getMoodIconsList(),
+                      key: (mood) => mood.title,
+                      value: (mood) => mood,
+                    );
                     var mood = entry.mood;
-
+                    var moodIcon = moodIconMap[mood] ??
+                        MoodIcon(
+                          title: 'Unknown',
+                          icon: Icons.error,
+                          color: Colors.black,
+                          rotation: 0.0,
+                        );
                     final DateTime dateTime = DateTime.parse(entry.date);
                     final formattedDate = DateFormat('EEE').format(dateTime);
                     final formattedDay = DateFormat('dd').format(dateTime);
@@ -162,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 3.0),
                           child: Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16.0, vertical: 8.0),
@@ -205,6 +219,20 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                moodIcon
+                                                    .icon, // Placeholder for mood icon
+                                                color: moodIcon.color,
+                                                size: 20.0,
+                                              ),
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+                                              Text(moodIcon.title)
+                                            ],
+                                          ),
                                           Text(
                                             entry.note,
                                             style: const TextStyle(
@@ -214,12 +242,6 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const Icon(
-                                      Icons
-                                          .sentiment_satisfied, // Placeholder for mood icon
-                                      color: Colors.green,
-                                      size: 32.0,
                                     ),
                                   ],
                                 ),
@@ -259,11 +281,9 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
+        color: Colors.blue,
         notchMargin: 8.0,
-        child: Container(
-          height: 60.0,
-          color: Colors.blue,
-        ),
+        child: Container(),
       ),
     );
   }

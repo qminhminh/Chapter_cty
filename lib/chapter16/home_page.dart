@@ -190,22 +190,30 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomCenter,
-        child: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => JournalEditBlocProvider(
-                  journalEditBloc: JournalEditBloc(),
-                  child: EditEntryAdd(),
-                ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        shape: const CircleBorder(),
+        elevation: 10.0,
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => JournalEditBlocProvider(
+                journalEditBloc: JournalEditBloc(),
+                child: EditEntryAdd(),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        color: Colors.green,
+        notchMargin: 8.0,
+        child: Container(),
       ),
     );
   }

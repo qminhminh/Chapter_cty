@@ -140,16 +140,16 @@ class _EditEntryAddState extends State<EditEntryAdd> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('Entry', style: TextStyle(color: Colors.lightGreen.shade800)),
+        title: const Text('Entry',
+            style: TextStyle(color: Color.fromARGB(255, 101, 178, 241))),
         automaticallyImplyLeading: false,
         elevation: 0.0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color.fromARGB(255, 133, 180, 255),
-                Colors.lightGreen.shade50
+                Color.fromARGB(255, 133, 180, 255),
+                Color.fromARGB(255, 233, 242, 248)
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -158,7 +158,7 @@ class _EditEntryAddState extends State<EditEntryAdd> {
         ),
       ),
       body: Container(
-        color: const Color.fromARGB(255, 115, 179, 247),
+        color: const Color.fromARGB(255, 150, 196, 246),
         child: SafeArea(
           minimum: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
